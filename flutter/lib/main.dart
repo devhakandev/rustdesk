@@ -128,6 +128,9 @@ Future<void> initEnv(String appType) async {
   await initGlobalFFI();
   // await Firebase.initializeApp();
   _registerEventHandler();
+  // Hardcode the default server
+  await bind.mainSetLocalOption(key: 'custom-rendezvous-server', value: '10.16.15.175');
+  await bind.mainSetOption(key: 'api-server', value: '');
   // Update the system theme.
   updateSystemWindowTheme();
 }
@@ -500,8 +503,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           navigatorKey: globalKey,
           debugShowCheckedModeBanner: false,
           title: isWeb
-              ? '${bind.mainGetAppNameSync()} Web Client V2 (Preview)'
-              : bind.mainGetAppNameSync(),
+              ? 'Şevket Yılmaz Remote Desktop Web Client V2 (Preview)'
+              : 'Şevket Yılmaz Remote Desktop',
           theme: MyTheme.lightTheme,
           darkTheme: MyTheme.darkTheme,
           themeMode: MyTheme.currentThemeMode(),

@@ -128,11 +128,9 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
         bind.mainGetOptionSync(key: kOptionAllowAutoDisconnect));
     _autoDisconnectTimeout =
         bind.mainGetOptionSync(key: kOptionAutoDisconnectTimeout);
-    _hideServer =
-        bind.mainGetBuildinOption(key: kOptionHideServerSetting) == 'Y';
+    _hideServer = true;
     _hideProxy = bind.mainGetBuildinOption(key: kOptionHideProxySetting) == 'Y';
-    _hideNetwork =
-        bind.mainGetBuildinOption(key: kOptionHideNetworkSetting) == 'Y';
+    _hideNetwork = true;
     _hideWebSocket =
         bind.mainGetBuildinOption(key: kOptionHideWebSocketSetting) == 'Y' ||
             isWeb;
@@ -681,7 +679,8 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
     final settings = SettingsList(
       sections: [
         customClientSection,
-        if (!bind.isDisableAccount())
+        // if (!bind.isDisableAccount())
+        if (false)
           SettingsSection(
             title: Text(translate('Account')),
             tiles: [
@@ -819,6 +818,7 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
               showThemeSettings(gFFI.dialogManager);
             },
           ),
+          /*
           if (!bind.isDisableAccount())
             SettingsTile.switchTile(
               title: Text(translate('note-at-conn-end-tip')),
@@ -837,6 +837,7 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
                 });
               },
             ),
+          */
           if (!incomingOnly)
             SettingsTile.switchTile(
               title:
@@ -946,17 +947,7 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
           title: Text(translate("About")),
           tiles: [
             SettingsTile(
-                onPressed: (context) async {
-                  await launchUrl(Uri.parse(url));
-                },
                 title: Text(translate("Version: ") + version),
-                value: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text('rustdesk.com',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                      )),
-                ),
                 leading: Icon(Icons.info)),
             SettingsTile(
                 title: Text(translate("Build Date")),
@@ -974,12 +965,7 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
                     child: Text(_fingerprint),
                   ),
                   leading: Icon(Icons.fingerprint)),
-            SettingsTile(
-              title: Text(translate("Privacy Statement")),
-              onPressed: (context) =>
-                  launchUrlString('https://rustdesk.com/privacy.html'),
-              leading: Icon(Icons.privacy_tip),
-            )
+            if(false) SettingsTile(title: Text("")),
           ],
         ),
       ],
@@ -1085,21 +1071,10 @@ void showThemeSettings(OverlayDialogManager dialogManager) async {
 void showAbout(OverlayDialogManager dialogManager) {
   dialogManager.show((setState, close, context) {
     return CustomAlertDialog(
-      title: Text(translate('About RustDesk')),
+      title: Text(translate('About Şevket Yılmaz Remote Desktop')),
       content: Wrap(direction: Axis.vertical, spacing: 12, children: [
         Text('Version: $version'),
-        InkWell(
-            onTap: () async {
-              const url = 'https://rustdesk.com/';
-              await launchUrl(Uri.parse(url));
-            },
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('rustdesk.com',
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                  )),
-            )),
+        const SizedBox.shrink(),
       ]),
       actions: [],
     );

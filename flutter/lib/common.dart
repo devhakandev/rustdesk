@@ -381,7 +381,7 @@ class MyTheme {
     appBarTheme: AppBarTheme(
       shadowColor: Colors.transparent,
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       elevation: 15,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18.0),
@@ -412,7 +412,7 @@ class MyTheme {
     cardColor: grayBg,
     hintColor: Color(0xFFAAAAAA),
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: Colors.black87,
     ),
     tooltipTheme: tooltipTheme(),
@@ -479,7 +479,7 @@ class MyTheme {
     appBarTheme: AppBarTheme(
       shadowColor: Colors.transparent,
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       elevation: 15,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18.0),
@@ -513,7 +513,7 @@ class MyTheme {
     ),
     cardColor: Color(0xFF24252B),
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: Colors.white70,
     ),
     tooltipTheme: tooltipTheme(),
@@ -1563,7 +1563,8 @@ String translate(String name) {
   if (name.startsWith('Failed to') && name.contains(': ')) {
     return name.split(': ').map((x) => translate(x)).join(': ');
   }
-  return platformFFI.translate(name, localeName);
+  var res = platformFFI.translate(name, localeName);
+  return res.replaceAll('RustDesk', 'Şevket Yılmaz Remote Desktop');
 }
 
 // This function must be kept the same as the one in rust and sciter code.
@@ -2957,7 +2958,7 @@ int versionCmp(String v1, String v2) {
 }
 
 String getWindowName({WindowType? overrideType}) {
-  final name = bind.mainGetAppNameSync();
+  final name = "Şevket Yılmaz Remote Desktop";
   switch (overrideType ?? kWindowType) {
     case WindowType.Main:
       return name;
@@ -3653,27 +3654,7 @@ Color? disabledTextColor(BuildContext context, bool enabled) {
 }
 
 Widget loadPowered(BuildContext context) {
-  if (bind.mainGetBuildinOption(key: "hide-powered-by-me") == 'Y') {
-    return SizedBox.shrink();
-  }
-  return MouseRegion(
-    cursor: SystemMouseCursors.click,
-    child: GestureDetector(
-      onTap: () {
-        launchUrl(Uri.parse('https://rustdesk.com'));
-      },
-      child: Opacity(
-          opacity: 0.5,
-          child: Text(
-            translate("powered_by_me"),
-            overflow: TextOverflow.clip,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(fontSize: 9, decoration: TextDecoration.underline),
-          )),
-    ),
-  ).marginOnly(top: 6);
+  return const SizedBox.shrink();
 }
 
 // max 300 x 60
@@ -4058,7 +4039,7 @@ List<String> getPrinterNames() {
 String _appName = '';
 String get appName {
   if (_appName.isEmpty) {
-    _appName = bind.mainGetAppNameSync();
+    _appName = "Şevket Yılmaz Remote Desktop";
   }
   return _appName;
 }

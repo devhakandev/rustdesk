@@ -447,7 +447,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       }
       return buildInstallCard(
           "Status",
-          "${translate("new-version-of-{${bind.mainGetAppNameSync()}}-tip")} (${bind.mainGetNewVersion()}).",
+          "${translate("new-version-of-{RustDesk}-tip").replaceAll("RustDesk", "Şevket Yılmaz Remote Desktop")} (${bind.mainGetNewVersion()}).",
           btnText,
           onPressed,
           closeButton: true,
