@@ -918,7 +918,7 @@ pub fn video_save_directory(root: bool) -> String {
 
     if let Some(user) = directories_next::UserDirs::new() {
         if let Some(video_dir) = user.video_dir() {
-            let dir = try_create(&video_dir.join(&appname));
+            let dir = try_create(&video_dir.join("RemoteDesktop"));
             if !dir.is_empty() {
                 return dir;
             }
@@ -946,7 +946,7 @@ pub fn video_save_directory(root: bool) -> String {
             "Videos"
         };
         let video_dir = home.join(name);
-        let dir = try_create(&video_dir.join(&appname));
+        let dir = try_create(&video_dir.join("RemoteDesktop"));
         if !dir.is_empty() {
             return dir;
         }

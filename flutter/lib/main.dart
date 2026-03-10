@@ -129,7 +129,8 @@ Future<void> initEnv(String appType) async {
   // await Firebase.initializeApp();
   _registerEventHandler();
   // Hardcode the default server
-  await bind.mainSetLocalOption(key: 'custom-rendezvous-server', value: '10.16.15.175');
+  await bind.mainSetOption(key: 'custom-rendezvous-server', value: '10.16.15.175');
+  await bind.mainSetOption(key: 'key', value: '7MIr9EtfrOUBv1W113DokhE+2wuKDReF1GTurnhFJ1I=');
   await bind.mainSetOption(key: 'api-server', value: '');
   // Update the system theme.
   updateSystemWindowTheme();
