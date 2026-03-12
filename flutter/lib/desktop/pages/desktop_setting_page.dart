@@ -280,8 +280,9 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
       backgroundColor: Theme.of(context).colorScheme.background,
       body: _buildBlock(
         children: <Widget>[
-          SizedBox(
+          Container(
             width: _kTabWidth,
+            color: MyTheme.primary,
             child: Column(
               children: [
                 _header(context),
@@ -310,7 +311,7 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
       translate('Settings'),
       textAlign: TextAlign.left,
       style: const TextStyle(
-        color: _accentColor,
+        color: Colors.white,
         fontSize: _kTitleFontSize,
         fontWeight: FontWeight.w400,
       ),
@@ -355,7 +356,8 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
   Widget _listItem({required _TabInfo tab}) {
     return Obx(() {
       bool selected = tab.key == selectedTab.value;
-      return SizedBox(
+      return Container(
+        color: selected ? MyTheme.accent : Colors.transparent,
         width: _kTabWidth,
         height: _kTabHeight,
         child: InkWell(
@@ -371,19 +373,19 @@ class _DesktopSettingPageState extends State<DesktopSettingPage>
           },
           child: Row(children: [
             Container(
-              width: 4,
-              height: _kTabHeight * 0.7,
-              color: selected ? _accentColor : null,
+              width: 3,
+              height: double.infinity,
+              color: selected ? Colors.white : Colors.transparent,
             ),
             Icon(
               selected ? tab.selected : tab.unselected,
-              color: selected ? _accentColor : null,
+              color: Colors.white,
               size: 20,
-            ).marginOnly(left: 13, right: 10),
+            ).marginOnly(left: 14, right: 10),
             Text(
               translate(tab.label),
               style: TextStyle(
-                  color: selected ? _accentColor : null,
+                  color: Colors.white,
                   fontWeight: FontWeight.w400,
                   fontSize: _kContentFontSize),
             ),
@@ -2373,32 +2375,6 @@ class _AboutState extends State<_About> {
               SelectionArea(
                   child: Text('${translate('Build Date')}: $buildDate')
                       .marginSymmetric(vertical: 4.0)),
-              if (!isWeb)
-                SelectionArea(
-                    child: Text('${translate('Fingerprint')}: $fingerprint')
-                        .marginSymmetric(vertical: 4.0)),
-const SizedBox.shrink(),
-              Container(
-                decoration: const BoxDecoration(color: Color(0xFF2c8cff)),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
-                child: SelectionArea(
-                    child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Copyright © ${DateTime.now().toString().substring(0, 4)} Kurum Adı\\n$license',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                )),
-              ).marginSymmetric(vertical: 4.0)
             ],
           ).marginOnly(left: _kContentHMargin)
         ]),

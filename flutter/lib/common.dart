@@ -27,6 +27,7 @@ import 'package:uuid/uuid.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
+import 'package:google_fonts/google_fonts.dart';
 
 import '../consts.dart';
 import 'common/widgets/overlay.dart';
@@ -250,10 +251,16 @@ class ColorThemeExtension extends ThemeExtension<ColorThemeExtension> {
 class MyTheme {
   MyTheme._();
 
-  static const Color grayBg = Color(0xFFEFEFF2);
-  static const Color accent = Color(0xFF0071FF);
-  static const Color accent50 = Color(0x770071FF);
-  static const Color accent80 = Color(0xAA0071FF);
+  static const Color grayBg = Color(0xFFF0F4F9); // Light blue-gray background
+  static const Color primary = Color(0xFF1a3a6b); // Dark corporate blue
+  static const Color hover = Color(0xFF1e4f9e); // Hover blue
+  static const Color cardBorder = Color(0xFFDCE8F5);
+  static const Color success = Color(0xFF2ecc71);
+  static const Color warning = Color(0xFFe67e22);
+
+  static const Color accent = Color(0xFF2e6bc4); // Medium blue
+  static const Color accent50 = Color(0x772e6bc4);
+  static const Color accent80 = Color(0xAA2e6bc4);
   static const Color canvasColor = Color(0xFF212121);
   static const Color border = Color(0xFFCCCCCC);
   static const Color idColor = Color(0xFF00B6F0);
@@ -402,14 +409,13 @@ class MyTheme {
             ),
           )
         : null,
-    textTheme: const TextTheme(
-        titleLarge: TextStyle(fontSize: 19, color: Colors.black87),
-        titleSmall: TextStyle(fontSize: 14, color: Colors.black87),
-        bodySmall: TextStyle(fontSize: 12, color: Colors.black87, height: 1.25),
-        bodyMedium:
-            TextStyle(fontSize: 14, color: Colors.black87, height: 1.25),
-        labelLarge: TextStyle(fontSize: 16.0, color: MyTheme.accent80)),
-    cardColor: grayBg,
+    textTheme: TextTheme(
+        titleLarge: GoogleFonts.nunito(fontSize: 19, color: Colors.black87, fontWeight: FontWeight.w600),
+        titleSmall: GoogleFonts.nunito(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w600),
+        bodySmall: GoogleFonts.nunito(fontSize: 12, color: Colors.black87, height: 1.25, fontWeight: FontWeight.w400),
+        bodyMedium: GoogleFonts.nunito(fontSize: 14, color: Colors.black87, height: 1.25, fontWeight: FontWeight.w400),
+        labelLarge: GoogleFonts.nunito(fontSize: 16.0, color: MyTheme.accent80, fontWeight: FontWeight.w600)),
+    cardColor: Colors.white,
     hintColor: Color(0xFFAAAAAA),
     visualDensity: VisualDensity.adaptivePlatformDensity,
     tabBarTheme: const TabBarThemeData(
@@ -500,12 +506,12 @@ class MyTheme {
             ),
           )
         : null,
-    textTheme: const TextTheme(
-      titleLarge: TextStyle(fontSize: 19),
-      titleSmall: TextStyle(fontSize: 14),
-      bodySmall: TextStyle(fontSize: 12, height: 1.25),
-      bodyMedium: TextStyle(fontSize: 14, height: 1.25),
-      labelLarge: TextStyle(
+    textTheme: TextTheme(
+      titleLarge: GoogleFonts.nunito(fontSize: 19, fontWeight: FontWeight.w600),
+      titleSmall: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w600),
+      bodySmall: GoogleFonts.nunito(fontSize: 12, height: 1.25, fontWeight: FontWeight.w400),
+      bodyMedium: GoogleFonts.nunito(fontSize: 14, height: 1.25, fontWeight: FontWeight.w400),
+      labelLarge: GoogleFonts.nunito(
         fontSize: 16.0,
         fontWeight: FontWeight.bold,
         color: accent80,

@@ -95,7 +95,8 @@ class _PeerCardState extends State<_PeerCard>
     final peer = super.widget.peer;
     var deco = Rx<BoxDecoration?>(
       BoxDecoration(
-        border: Border.all(color: Colors.transparent, width: _borderWidth),
+        color: Theme.of(context).cardColor,
+        border: Border.all(color: MyTheme.cardBorder, width: 1),
         borderRadius: BorderRadius.circular(
           peerCardUiType.value == PeerUiType.grid ? _cardRadius : _tileRadius,
         ),
@@ -104,17 +105,26 @@ class _PeerCardState extends State<_PeerCard>
     return MouseRegion(
       onEnter: (evt) {
         deco.value = BoxDecoration(
+          color: Theme.of(context).cardColor,
           border: Border.all(
-              color: Theme.of(context).colorScheme.primary,
-              width: _borderWidth),
+              color: MyTheme.primary,
+              width: 1),
           borderRadius: BorderRadius.circular(
             peerCardUiType.value == PeerUiType.grid ? _cardRadius : _tileRadius,
           ),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            )
+          ]
         );
       },
       onExit: (evt) {
         deco.value = BoxDecoration(
-          border: Border.all(color: Colors.transparent, width: _borderWidth),
+          color: Theme.of(context).cardColor,
+          border: Border.all(color: MyTheme.cardBorder, width: 1),
           borderRadius: BorderRadius.circular(
             peerCardUiType.value == PeerUiType.grid ? _cardRadius : _tileRadius,
           ),
@@ -145,7 +155,7 @@ class _PeerCardState extends State<_PeerCard>
       children: [
         Container(
             decoration: BoxDecoration(
-              color: str2color('${peer.id}${peer.platform}', 0x7f),
+              color: Colors.transparent,
               borderRadius: isPortrait
                   ? BorderRadius.circular(_tileRadius)
                   : BorderRadius.only(
@@ -164,7 +174,7 @@ class _PeerCardState extends State<_PeerCard>
                   Positioned(
                     top: 1,
                     left: 1,
-                    child: Icon(Icons.key, size: 6, color: Colors.white),
+                    child: Icon(Icons.key, size: 6, color: MyTheme.primary),
                   ),
               ],
             )),
@@ -262,7 +272,7 @@ class _PeerCardState extends State<_PeerCard>
           () => deco == null
               ? makeChild(stateGlobal.isPortrait.isTrue, peer)
               : Container(
-                  foregroundDecoration: deco.value,
+                  decoration: deco.value,
                   child: makeChild(stateGlobal.isPortrait.isTrue, peer),
                 ),
         ),
@@ -285,17 +295,10 @@ class _PeerCardState extends State<_PeerCard>
     final name = hideUsernameOnCard == true
         ? peer.hostname
         : '${peer.username}${peer.username.isNotEmpty && peer.hostname.isNotEmpty ? '@' : ''}${peer.hostname}';
-    final child = Card(
-      color: Colors.transparent,
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      // to-do: memory leak here, more investigation needed.
-      // Continious rebuilds of `Obx()` will cause memory leak here.
-      // The simple demo does not have this issue.
-      child: Obx(
-        () => Container(
-          foregroundDecoration: deco.value,
-          child: ClipRRect(
+    final child = Obx(
+      () => Container(
+        decoration: deco.value,
+        child: ClipRRect(
             borderRadius: BorderRadius.circular(_cardRadius - _borderWidth),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -303,7 +306,7 @@ class _PeerCardState extends State<_PeerCard>
               children: [
                 Expanded(
                   child: Container(
-                    color: str2color('${peer.id}${peer.platform}', 0x7f),
+                    color: MyTheme.grayBg,
                     child: Row(
                       children: [
                         Expanded(
@@ -323,9 +326,10 @@ class _PeerCardState extends State<_PeerCard>
                                       waitDuration: const Duration(seconds: 1),
                                       child: Text(
                                         name,
-                                        style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 12),
+                                        style: TextStyle(
+                                            color: Theme.of(context).textTheme.titleLarge?.color,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13),
                                         textAlign: TextAlign.center,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -342,9 +346,9 @@ class _PeerCardState extends State<_PeerCard>
                                       waitDuration: const Duration(seconds: 1),
                                       child: Text(
                                         peer.note,
-                                        style: const TextStyle(
-                                            color: Colors.white38,
-                                            fontSize: 10),
+                                        style: TextStyle(
+                                            color: Theme.of(context).hintColor,
+                                            fontSize: 11),
                                         textAlign: TextAlign.center,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -359,7 +363,7 @@ class _PeerCardState extends State<_PeerCard>
                   ),
                 ),
                 Container(
-                  color: Theme.of(context).colorScheme.background,
+                  color: Colors.transparent,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -381,7 +385,6 @@ class _PeerCardState extends State<_PeerCard>
             ),
           ),
         ),
-      ),
     );
 
     final colors = _frontN(peer.tags, 25)
@@ -397,7 +400,7 @@ class _PeerCardState extends State<_PeerCard>
           Positioned(
             top: 4,
             left: 12,
-            child: Icon(Icons.key, size: 12, color: Colors.white),
+            child: Icon(Icons.key, size: 12, color: MyTheme.primary),
           ),
         if (colors.isNotEmpty)
           Positioned(
