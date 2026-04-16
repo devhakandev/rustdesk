@@ -59,14 +59,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final isIncomingOnly = bind.isIncomingOnly();
     return _buildBlock(
         child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildLeftPane(context),
-        if (!isIncomingOnly) const VerticalDivider(width: 1),
-        if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
+        Expanded(flex: 4, child: buildLeftPane(context)),
+        if (!bind.isIncomingOnly())
+          Expanded(flex: 5, child: buildRightPane(context)),
       ],
     ));
   }
@@ -77,15 +76,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildLeftPane(BuildContext context) {
-    final isIncomingOnly = bind.isIncomingOnly();
-    final isOutgoingOnly = bind.isOutgoingOnly();
+    // Dumb Client: Sadece logo, ID ve bağlantı durumu
     final children = <Widget>[
-      if (!isOutgoingOnly) buildPresetPasswordWarning(),
-      if (bind.isCustomClient())
-        Align(
-          alignment: Alignment.center,
-          child: loadPowered(context),
-        ),
+      const SizedBox(height: 20),
       Align(
         alignment: Alignment.center,
         child: Column(
@@ -97,7 +90,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -105,89 +98,34 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         ),
       ),
       buildTip(context),
-      if (!isOutgoingOnly) buildIDBoard(context),
-      if (!isOutgoingOnly) buildPasswordBoard(context),
-      FutureBuilder<Widget>(
-        future: Future.value(
-            Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
-        builder: (_, data) {
-          if (data.hasData) {
-            if (isIncomingOnly) {
-              if (isInHomePage()) {
-                Future.delayed(Duration(milliseconds: 300), () {
-                  _updateWindowSize();
-                });
-              }
-            }
-            return data.data!;
-          } else {
-            return const Offstage();
+      buildIDBoard(context),
+      buildPasswordBoard(context),
+      const SizedBox(height: 20),
+      Divider(color: Colors.white24),
+      OnlineStatusWidget(
+        onSvcStatusChanged: () {
+          if (isInHomePage()) {
+            Future.delayed(Duration(milliseconds: 300), () {
+              _updateWindowSize();
+            });
           }
         },
-      ),
-      buildPluginEntry(),
+      ).marginOnly(bottom: 6, right: 6),
     ];
-    if (isIncomingOnly) {
-      children.addAll([
-        Divider(),
-        OnlineStatusWidget(
-          onSvcStatusChanged: () {
-            if (isInHomePage()) {
-              Future.delayed(Duration(milliseconds: 300), () {
-                _updateWindowSize();
-              });
-            }
-          },
-        ).marginOnly(bottom: 6, right: 6)
-      ]);
-    }
-    final textColor = Theme.of(context).textTheme.titleLarge?.color;
     return ChangeNotifierProvider.value(
       value: gFFI.serverModel,
       child: Container(
-        width: isIncomingOnly ? 280.0 : 200.0,
         color: MyTheme.primary,
-        child: Stack(
+        child: Column(
           children: [
-            Column(
-              children: [
-                SingleChildScrollView(
-                  controller: _leftPaneScrollController,
-                  child: Column(
-                    key: _childKey,
-                    children: children,
-                  ),
-                ),
-                Expanded(child: Container())
-              ],
+            SingleChildScrollView(
+              controller: _leftPaneScrollController,
+              child: Column(
+                key: _childKey,
+                children: children,
+              ),
             ),
-            if (isOutgoingOnly)
-              Positioned(
-                bottom: 6,
-                left: 12,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: InkWell(
-                    child: Obx(
-                      () => Icon(
-                        Icons.settings,
-                        color: _editHover.value
-                            ? textColor
-                            : Colors.grey.withOpacity(0.5),
-                        size: 22,
-                      ),
-                    ),
-                    onTap: () => {
-                      if (DesktopSettingPage.tabKeys.isNotEmpty)
-                        {
-                          DesktopSettingPage.switch2page(
-                              DesktopSettingPage.tabKeys[0])
-                        }
-                    },
-                    onHover: (value) => _editHover.value = value,
-                  ),
-                ),
-              )
+            Expanded(child: Container())
           ],
         ),
       ),
@@ -232,7 +170,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                               fontSize: 14,
                               color: Colors.white70),
                         ).marginOnly(top: 5),
-                        buildPopupMenu(context)
+                        // Dumb Client: settings popup kaldırıldı
                       ],
                     ),
                   ),
