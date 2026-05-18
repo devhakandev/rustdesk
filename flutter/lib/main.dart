@@ -129,9 +129,16 @@ Future<void> initEnv(String appType) async {
   // await Firebase.initializeApp();
   _registerEventHandler();
   // Hardcode the default server
-  await bind.mainSetOption(key: 'custom-rendezvous-server', value: '10.16.15.175');
-  await bind.mainSetOption(key: 'key', value: '7MIr9EtfrOUBv1W113DokhE+2wuKDReF1GTurnhFJ1I=');
+  await bind.mainSetOption(
+      key: 'custom-rendezvous-server', value: '10.16.15.175');
+  await bind.mainSetOption(
+      key: 'key', value: 'aPO4N7LumKAyYAPJ3UAqWPjqJPoRn+DrSxZKaoi2wIQ=');
   await bind.mainSetOption(key: 'api-server', value: '');
+  await bind.mainSetOption(key: 'enable-lan-discovery', value: 'N');
+  await bind.mainSetOption(
+      key: 'verification-method', value: 'use-permanent-password');
+  await bind.mainSetOption(key: 'approve-mode', value: 'password');
+  await bind.mainSetOption(key: 'allow-remote-config-modification', value: 'N');
   // Update the system theme.
   updateSystemWindowTheme();
 }
@@ -158,11 +165,17 @@ void runMainApp(bool startService) async {
   }
 
   // Set window option.
+  final mainWindowSize = getIncomingOnlyHomeSize();
   WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
-      isMainWindow: true, alwaysOnTop: alwaysOnTop);
+      isMainWindow: true,
+      size: mainWindowSize,
+      center: true,
+      alwaysOnTop: alwaysOnTop);
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     // Restore the location of the main window before window hide or show.
     await restoreWindowPosition(WindowType.Main);
+    await windowManager.setSize(mainWindowSize);
+    await windowManager.center();
     // Check the startup argument, if we successfully handle the argument, we keep the main window hidden.
     final handledByUniLinks = await initUniLinks();
     debugPrint("handled by uni links: $handledByUniLinks");
@@ -177,7 +190,7 @@ void runMainApp(bool startService) async {
     windowManager.setOpacity(1);
     windowManager.setTitle(getWindowName());
     // Do not use `windowManager.setResizable()` here.
-    setResizable(!bind.isIncomingOnly());
+    setResizable(false);
   });
 }
 

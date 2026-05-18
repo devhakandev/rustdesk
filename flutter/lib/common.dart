@@ -410,11 +410,24 @@ class MyTheme {
           )
         : null,
     textTheme: TextTheme(
-        titleLarge: GoogleFonts.nunito(fontSize: 19, color: Colors.black87, fontWeight: FontWeight.w600),
-        titleSmall: GoogleFonts.nunito(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w600),
-        bodySmall: GoogleFonts.nunito(fontSize: 12, color: Colors.black87, height: 1.25, fontWeight: FontWeight.w400),
-        bodyMedium: GoogleFonts.nunito(fontSize: 14, color: Colors.black87, height: 1.25, fontWeight: FontWeight.w400),
-        labelLarge: GoogleFonts.nunito(fontSize: 16.0, color: MyTheme.accent80, fontWeight: FontWeight.w600)),
+        titleLarge: GoogleFonts.nunito(
+            fontSize: 19, color: Colors.black87, fontWeight: FontWeight.w600),
+        titleSmall: GoogleFonts.nunito(
+            fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w600),
+        bodySmall: GoogleFonts.nunito(
+            fontSize: 12,
+            color: Colors.black87,
+            height: 1.25,
+            fontWeight: FontWeight.w400),
+        bodyMedium: GoogleFonts.nunito(
+            fontSize: 14,
+            color: Colors.black87,
+            height: 1.25,
+            fontWeight: FontWeight.w400),
+        labelLarge: GoogleFonts.nunito(
+            fontSize: 16.0,
+            color: MyTheme.accent80,
+            fontWeight: FontWeight.w600)),
     cardColor: Colors.white,
     hintColor: Color(0xFFAAAAAA),
     visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -509,8 +522,10 @@ class MyTheme {
     textTheme: TextTheme(
       titleLarge: GoogleFonts.nunito(fontSize: 19, fontWeight: FontWeight.w600),
       titleSmall: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w600),
-      bodySmall: GoogleFonts.nunito(fontSize: 12, height: 1.25, fontWeight: FontWeight.w400),
-      bodyMedium: GoogleFonts.nunito(fontSize: 14, height: 1.25, fontWeight: FontWeight.w400),
+      bodySmall: GoogleFonts.nunito(
+          fontSize: 12, height: 1.25, fontWeight: FontWeight.w400),
+      bodyMedium: GoogleFonts.nunito(
+          fontSize: 14, height: 1.25, fontWeight: FontWeight.w400),
       labelLarge: GoogleFonts.nunito(
         fontSize: 16.0,
         fontWeight: FontWeight.bold,
@@ -3696,7 +3711,7 @@ Widget loadIcon(double size) {
           ));
 }
 
-var imcomingOnlyHomeSize = Size(280, 300);
+var imcomingOnlyHomeSize = Size(360, 320);
 Size getIncomingOnlyHomeSize() {
   final magicWidth = isWindows ? 11.0 : 2.0;
   final magicHeight = 10.0;
@@ -4140,8 +4155,7 @@ Widget? buildAvatarWidget({
       width: size,
       height: size,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) =>
-          fallback ?? SizedBox.shrink(),
+      errorBuilder: (_, __, ___) => fallback ?? SizedBox.shrink(),
     ),
   );
 }

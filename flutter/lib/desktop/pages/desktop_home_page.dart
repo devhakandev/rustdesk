@@ -59,15 +59,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return _buildBlock(
-        child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(flex: 4, child: buildLeftPane(context)),
-        if (!bind.isIncomingOnly())
-          Expanded(flex: 5, child: buildRightPane(context)),
-      ],
-    ));
+    return _buildBlock(child: buildLeftPane(context));
   }
 
   Widget _buildBlock({required Widget child}) {
@@ -76,9 +68,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildLeftPane(BuildContext context) {
-    // Dumb Client: Sadece logo, ID ve bağlantı durumu
     final children = <Widget>[
-      const SizedBox(height: 20),
+      const SizedBox(height: 28),
       Align(
         alignment: Alignment.center,
         child: Column(
@@ -97,11 +88,10 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           ],
         ),
       ),
-      buildTip(context),
+      const SizedBox(height: 34),
       buildIDBoard(context),
-      buildPasswordBoard(context),
-      const SizedBox(height: 20),
-      Divider(color: Colors.white24),
+      const SizedBox(height: 26),
+      const Divider(color: Colors.white24),
       OnlineStatusWidget(
         onSvcStatusChanged: () {
           if (isInHomePage()) {
@@ -118,14 +108,15 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         color: MyTheme.primary,
         child: Column(
           children: [
-            SingleChildScrollView(
-              controller: _leftPaneScrollController,
-              child: Column(
-                key: _childKey,
-                children: children,
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _leftPaneScrollController,
+                child: Column(
+                  key: _childKey,
+                  children: children,
+                ),
               ),
             ),
-            Expanded(child: Container())
           ],
         ),
       ),
@@ -142,8 +133,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   buildIDBoard(BuildContext context) {
     final model = gFFI.serverModel;
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 11),
-      height: 57,
+      margin: const EdgeInsets.only(left: 24, right: 24),
+      height: 76,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -166,11 +157,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                       children: [
                         Text(
                           translate("ID"),
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70),
+                          style: TextStyle(fontSize: 14, color: Colors.white70),
                         ).marginOnly(top: 5),
-                        // Dumb Client: settings popup kaldırıldı
                       ],
                     ),
                   ),
@@ -191,8 +179,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                           contentPadding: EdgeInsets.only(top: 10, bottom: 10),
                         ),
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 26,
                           color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
                       ).workaroundFreezeLinuxMint(),
                     ),
@@ -216,9 +205,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         child: Obx(
           () => CircleAvatar(
             radius: 15,
-            backgroundColor: hover.value
-                ? MyTheme.hover
-                : Colors.transparent,
+            backgroundColor: hover.value ? MyTheme.hover : Colors.transparent,
             child: Icon(
               Icons.more_vert_outlined,
               size: 20,
@@ -266,8 +253,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                 children: [
                   AutoSizeText(
                     translate("One-time Password"),
-                    style: TextStyle(
-                        fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 14, color: Colors.white70),
                     maxLines: 1,
                   ),
                   Row(
@@ -357,7 +343,10 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                   alignment: Alignment.centerLeft,
                   child: Text(
                     translate("Your Desktop"),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(color: Colors.white),
                   ),
                 ),
             ],
@@ -369,13 +358,19 @@ class _DesktopHomePageState extends State<DesktopHomePage>
             Text(
               translate("desk_tip"),
               overflow: TextOverflow.clip,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.white70),
             ),
           if (isOutgoingOnly)
             Text(
               translate("outgoing_only_desk_tip"),
               overflow: TextOverflow.clip,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.white70),
             ),
         ],
       ),
@@ -482,8 +477,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
             () async {},
             marginTop: LinuxCards.isEmpty ? 20.0 : 5.0,
             help: 'Help',
-            link:
-                '',
+            link: '',
             closeButton: true,
             closeOption: keyShowSelinuxHelpTip,
           ));
@@ -553,7 +547,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     }
 
     return Container(
-      margin: EdgeInsets.fromLTRB(20, marginTop, 16, bind.isIncomingOnly() ? marginTop : 0),
+      margin: EdgeInsets.fromLTRB(
+          20, marginTop, 16, bind.isIncomingOnly() ? marginTop : 0),
       decoration: BoxDecoration(
         color: Color(0x33e67e22), // 20% opacity warning orange
         borderRadius: BorderRadius.circular(10),
@@ -568,8 +563,15 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                     ? <Widget>[
                         Row(
                           children: [
-                            Icon(Icons.warning_amber_rounded, color: MyTheme.warning, size: 20).marginOnly(right: 8),
-                            Expanded(child: Text(translate(title), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
+                            Icon(Icons.warning_amber_rounded,
+                                    color: MyTheme.warning, size: 20)
+                                .marginOnly(right: 8),
+                            Expanded(
+                                child: Text(translate(title),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14))),
                           ],
                         ).marginOnly(bottom: 8)
                       ]
@@ -578,7 +580,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                   if (content.isNotEmpty)
                     Text(
                       translate(content),
-                      style: TextStyle(height: 1.4, color: Colors.white70, fontSize: 13),
+                      style: TextStyle(
+                          height: 1.4, color: Colors.white70, fontSize: 13),
                     ).marginOnly(bottom: btnText.isNotEmpty ? 16 : 0)
                 ] +
                 (btnText.isNotEmpty
@@ -586,21 +589,31 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                         OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: MyTheme.warning, width: 1),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                           ),
                           onPressed: onPressed,
-                          child: Text(translate(btnText), style: TextStyle(color: MyTheme.warning, fontWeight: FontWeight.bold, fontSize: 13)),
+                          child: Text(translate(btnText),
+                              style: TextStyle(
+                                  color: MyTheme.warning,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13)),
                         )
                       ]
                     : <Widget>[]) +
                 (help != null
                     ? <Widget>[
                         InkWell(
-                            onTap: () async => await launchUrl(Uri.parse(link!)),
+                            onTap: () async =>
+                                await launchUrl(Uri.parse(link!)),
                             child: Text(
                               translate(help),
-                              style: TextStyle(decoration: TextDecoration.underline, color: Colors.white70, fontSize: 12),
+                              style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  color: Colors.white70,
+                                  fontSize: 12),
                             )).marginOnly(top: 8),
                       ]
                     : <Widget>[]),
@@ -692,7 +705,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
     bool isChattyMethod(String methodName) {
       switch (methodName) {
-        case kWindowBumpMouse: return true;
+        case kWindowBumpMouse:
+          return true;
       }
 
       return false;
@@ -701,7 +715,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     rustDeskWinManager.setMethodHandler((call, fromWindowId) async {
       if (!isChattyMethod(call.method)) {
         debugPrint(
-          "[Main] call ${call.method} with args ${call.arguments} from window $fromWindowId");
+            "[Main] call ${call.method} with args ${call.arguments} from window $fromWindowId");
       }
       if (call.method == kWindowMainWindowOnTop) {
         windowOnTop(null);
@@ -736,9 +750,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           connToken: call.arguments['connToken'],
         );
       } else if (call.method == kWindowBumpMouse) {
-        return RdPlatformChannel.instance.bumpMouse(
-          dx: call.arguments['dx'],
-          dy: call.arguments['dy']);
+        return RdPlatformChannel.instance
+            .bumpMouse(dx: call.arguments['dx'], dy: call.arguments['dy']);
       } else if (call.method == kWindowEventMoveTabToNewWindow) {
         final args = call.arguments.split(',');
         int? windowId;
