@@ -140,6 +140,22 @@ def make_parser():
             action='store_true',
             help='Skip packing, only flutter version + Windows supported'
         )
+        parser.add_argument(
+            '--client-profile',
+            choices=['host', 'admin'],
+            default=os.environ.get('SYRD_CLIENT_PROFILE', 'host').lower(),
+            help='SevketYilmazRD client profile for Flutter build: host or admin.'
+        )
+        parser.add_argument(
+            '--client-server-host',
+            default=os.environ.get('SYRD_SERVER_HOST', ''),
+            help='Optional private rendezvous server host embedded via dart-define.'
+        )
+        parser.add_argument(
+            '--client-server-key',
+            default=os.environ.get('SYRD_SERVER_KEY', ''),
+            help='Optional private rendezvous server key embedded via dart-define.'
+        )
     parser.add_argument(
         "--package",
         type=str
@@ -431,14 +447,26 @@ def build_flutter_arch_manjaro(version, features):
     system2('HBB=`pwd`/.. FLUTTER=1 makepkg -f')
 
 
-def build_flutter_windows(version, features, skip_portable_pack):
+def flutter_dart_define_args(client_profile, client_server_host, client_server_key):
+    args = [f'--dart-define=SYRD_CLIENT_PROFILE={client_profile}']
+    if client_server_host:
+        args.append(f'--dart-define=SYRD_SERVER_HOST={client_server_host}')
+    if client_server_key:
+        args.append(f'--dart-define=SYRD_SERVER_KEY={client_server_key}')
+    return ' '.join(args)
+
+
+def build_flutter_windows(version, features, skip_portable_pack,
+                          client_profile, client_server_host, client_server_key):
     if not skip_cargo:
         system2(f'cargo build --features {features} --lib --release')
         if not os.path.exists("target/release/librustdesk.dll"):
             print("cargo build failed, please check rust source code.")
             exit(-1)
     os.chdir('flutter')
-    system2('flutter build windows --release')
+    flutter_args = flutter_dart_define_args(
+        client_profile, client_server_host, client_server_key)
+    system2(f'flutter build windows --release {flutter_args}')
     os.chdir('..')
     shutil.copy2('target/release/deps/dylib_virtual_display.dll',
                  flutter_build_dir_2)
@@ -457,10 +485,13 @@ def build_flutter_windows(version, features, skip_portable_pack):
                   './rustdesk_portable.exe')
     print(
         f'output location: {os.path.abspath(os.curdir)}/rustdesk_portable.exe')
-    shutil.copy2('./rustdesk_portable.exe', f'./SevketYilmazRD.exe')
-    os.rename('./rustdesk_portable.exe', f'./SevketYilmazRD-{version}-install.exe')
-    print(
-        f'output location: {os.path.abspath(os.curdir)}/SevketYilmazRD.exe')
+    profile_name = 'Admin' if client_profile == 'admin' else 'Host'
+    portable_name = f'./SevketYilmazRD-{profile_name}.exe'
+    installer_name = f'./SevketYilmazRD-{profile_name}-Setup.exe'
+    shutil.copy2('./rustdesk_portable.exe', portable_name)
+    os.replace('./rustdesk_portable.exe', installer_name)
+    print(f'output location: {os.path.abspath(portable_name)}')
+    print(f'output location: {os.path.abspath(installer_name)}')
 
 
 def main():
@@ -494,7 +525,13 @@ def main():
         os.chdir('../../..')
 
         if flutter:
-            build_flutter_windows(version, features, args.skip_portable_pack)
+            build_flutter_windows(
+                version,
+                features,
+                args.skip_portable_pack,
+                args.client_profile,
+                args.client_server_host,
+                args.client_server_key)
             return
         system2('cargo build --release --features ' + features)
         # system2('upx.exe target/release/rustdesk.exe')

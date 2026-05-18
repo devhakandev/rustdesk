@@ -96,7 +96,15 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
             backgroundColor: Theme.of(context).colorScheme.background,
             body: DesktopTab(
               controller: tabController,
-              showMaximize: false,
+              showMaximize: !isSyrdHostClient,
+              tail: isSyrdHostClient
+                  ? null
+                  : ActionIcon(
+                      message: 'Settings',
+                      icon: Icons.settings,
+                      onTap: () => DesktopTabPage.onAddSetting(),
+                      isClose: false,
+                    ),
             )));
     return isMacOS || kUseCompatibleUiMode
         ? tabWidget

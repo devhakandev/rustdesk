@@ -37,13 +37,21 @@ class PeerTabModel with ChangeNotifier {
     IconFont.addressBook,
     IconFont.deviceGroupFill,
   ];
-  List<bool> isEnabled = List.from([
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]);
+  List<bool> isEnabled = List.from(isSyrdHostClient
+      ? const [
+          false,
+          false,
+          false,
+          false,
+          false,
+        ]
+      : const [
+          true,
+          true,
+          false,
+          false,
+          false,
+        ]);
   final List<bool> _isVisible = List.filled(maxTabCount, true, growable: false);
   List<bool> get isVisibleEnabled => () {
         final list = _isVisible.toList();

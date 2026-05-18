@@ -15,7 +15,6 @@ import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
 import 'package:flutter_hbb/desktop/widgets/update_progress.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_hbb/models/server_model.dart';
-import 'package:flutter_hbb/models/state_model.dart';
 import 'package:flutter_hbb/plugin/ui_manager.dart';
 import 'package:flutter_hbb/utils/multi_window_manager.dart';
 import 'package:flutter_hbb/utils/platform_channel.dart';
@@ -24,7 +23,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
-import '../widgets/button.dart';
 
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({Key? key}) : super(key: key);
@@ -51,7 +49,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   Timer? _updateTimer;
   bool isCardClosed = false;
 
-  final RxBool _editHover = false.obs;
   final RxBool _block = false.obs;
 
   final GlobalKey _childKey = GlobalKey();
@@ -59,7 +56,17 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return _buildBlock(child: buildLeftPane(context));
+    if (isSyrdHostClient) {
+      return _buildBlock(child: buildLeftPane(context));
+    }
+    return _buildBlock(
+      child: Row(
+        children: [
+          SizedBox(width: 415, child: buildLeftPane(context)),
+          Expanded(child: buildRightPane(context)),
+        ],
+      ),
+    );
   }
 
   Widget _buildBlock({required Widget child}) {
@@ -790,7 +797,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     });
     _uniLinksSubscription = listenUniLinks();
 
-    if (bind.isIncomingOnly()) {
+    if (isSyrdHostClient || bind.isIncomingOnly()) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _updateWindowSize();
       });

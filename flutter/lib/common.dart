@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -65,6 +64,20 @@ final isWebOnMacOs = isWebOnMacOS_;
 var isMobile = isAndroid || isIOS;
 var version = '';
 int androidVersion = 0;
+
+const kSyrdClientProfile =
+    String.fromEnvironment('SYRD_CLIENT_PROFILE', defaultValue: 'host');
+const kSyrdServerHost =
+    String.fromEnvironment('SYRD_SERVER_HOST', defaultValue: '');
+const kSyrdServerKey =
+    String.fromEnvironment('SYRD_SERVER_KEY', defaultValue: '');
+const kSyrdAdminUriPrefix = 'sevketyilmazrd-admin://';
+
+bool get isSyrdAdminClient => kSyrdClientProfile.toLowerCase() == 'admin';
+bool get isSyrdHostClient => !isSyrdAdminClient;
+bool isSyrdSupportedUriLink(String value) =>
+    value.startsWith(bind.mainUriPrefixSync()) ||
+    (isSyrdAdminClient && value.startsWith(kSyrdAdminUriPrefix));
 
 // Only used on Linux.
 // `windowManager.setResizable(false)` will reset the window size to the default size on Linux.
@@ -2235,7 +2248,7 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
   if (cmdArgs != null && cmdArgs.isNotEmpty) {
     args = cmdArgs;
     // rustdesk <uri link>
-    if (args[0].startsWith(bind.mainUriPrefixSync())) {
+    if (isSyrdSupportedUriLink(args[0])) {
       final uri = Uri.tryParse(args[0]);
       if (uri != null) {
         args = urlLinkToCmdArgs(uri);
