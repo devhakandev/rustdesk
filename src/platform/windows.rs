@@ -1663,10 +1663,23 @@ fn get_before_uninstall(kill_self: bool) -> String {
     format!(
         "
     chcp 65001
-    sc stop {app_name}
-    sc delete {app_name}
+    schtasks /End /TN \"SevketYilmazRD Cihaz Kayit\" /F >NUL 2>NUL
+    schtasks /Delete /TN \"SevketYilmazRD Cihaz Kayit\" /F >NUL 2>NUL
+    sc stop \"{app_name}\" >NUL 2>NUL
+    for /L %%i in (1,1,30) do (
+        sc query \"{app_name}\" >NUL 2>NUL || goto syrd_service_stopped
+        sc query \"{app_name}\" | find \"STOPPED\" >NUL 2>NUL && goto syrd_service_stopped
+        timeout /t 1 /nobreak >NUL
+    )
+    :syrd_service_stopped
     taskkill /F /IM {broker_exe}
     taskkill /F /IM {app_name}.exe{filter}
+    sc delete \"{app_name}\" >NUL 2>NUL
+    for /L %%i in (1,1,45) do (
+        sc query \"{app_name}\" >NUL 2>NUL || goto syrd_service_deleted
+        timeout /t 1 /nobreak >NUL
+    )
+    :syrd_service_deleted
     reg delete HKEY_CLASSES_ROOT\\.{ext} /f
     reg delete HKEY_CLASSES_ROOT\\{ext} /f
     netsh advfirewall firewall delete rule name=\"{app_name} Service\"
@@ -1713,6 +1726,7 @@ fn get_uninstall(kill_self: bool, uninstall_printer: bool) -> String {
     {uninstall_amyuni_idd}
     if exist \"{path}\" rd /s /q \"{path}\"
     if exist \"{start_menu}\" rd /s /q \"{start_menu}\"
+    if exist \"%PROGRAMDATA%\\SevketYilmazRD\" rd /s /q \"%PROGRAMDATA%\\SevketYilmazRD\"
     if exist \"%PUBLIC%\\Desktop\\{app_name}.lnk\" del /f /q \"%PUBLIC%\\Desktop\\{app_name}.lnk\"
     if exist \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\{app_name} Tray.lnk\" del /f /q \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\{app_name} Tray.lnk\"
     ",

@@ -170,18 +170,27 @@ void runMainApp(bool startService) async {
   }
 
   // Set window option.
-  final mainWindowSize = isSyrdHostClient ? getIncomingOnlyHomeSize() : null;
+  final mainWindowSize =
+      isSyrdHostClient ? getIncomingOnlyHomeSize() : kSyrdAdminHomeSize;
   WindowOptions windowOptions = getHiddenTitleBarWindowOptions(
       isMainWindow: true,
       size: mainWindowSize,
-      center: isSyrdHostClient,
+      center: true,
       alwaysOnTop: alwaysOnTop);
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     // Restore the location of the main window before window hide or show.
     await restoreWindowPosition(WindowType.Main);
-    if (mainWindowSize != null) {
+    if (isSyrdHostClient) {
       await windowManager.setSize(mainWindowSize);
       await windowManager.center();
+    } else {
+      await windowManager.setMinimumSize(kSyrdAdminMinimumHomeSize);
+      final restoredSize = await windowManager.getSize();
+      if (restoredSize.width < kSyrdAdminMinimumHomeSize.width ||
+          restoredSize.height < kSyrdAdminMinimumHomeSize.height) {
+        await windowManager.setSize(kSyrdAdminHomeSize);
+        await windowManager.center();
+      }
     }
     // Check the startup argument, if we successfully handle the argument, we keep the main window hidden.
     final handledByUniLinks = await initUniLinks();

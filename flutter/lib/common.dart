@@ -72,6 +72,8 @@ const kSyrdServerHost =
 const kSyrdServerKey =
     String.fromEnvironment('SYRD_SERVER_KEY', defaultValue: '');
 const kSyrdAdminUriPrefix = 'sevketyilmazrd-admin://';
+const kSyrdAdminHomeSize = Size(940, 680);
+const kSyrdAdminMinimumHomeSize = Size(880, 560);
 
 bool get isSyrdAdminClient => kSyrdClientProfile.toLowerCase() == 'admin';
 bool get isSyrdHostClient => !isSyrdAdminClient;
