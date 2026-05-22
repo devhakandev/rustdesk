@@ -499,6 +499,16 @@ def main():
     parser = make_parser()
     args = parser.parse_args()
 
+    if windows and args.flutter:
+        if not args.client_server_host:
+            raise Exception("SYRD_SERVER_HOST or --client-server-host is required for branded Windows Flutter builds")
+        if not args.client_server_key:
+            raise Exception("SYRD_SERVER_KEY or --client-server-key is required for branded Windows Flutter builds")
+        if args.client_server_host:
+            os.environ["SYRD_SERVER_HOST"] = args.client_server_host
+        if args.client_server_key:
+            os.environ["SYRD_SERVER_KEY"] = args.client_server_key
+
     if os.path.exists(exe_path):
         os.unlink(exe_path)
     if os.path.isfile('/usr/bin/pacman'):

@@ -154,6 +154,19 @@ pub fn core_main() -> Option<Vec<String>> {
     }
     hbb_common::init_log(false, &log_name);
 
+    #[cfg(feature = "flutter")]
+    if let Some(first_arg) = args.get(0).cloned() {
+        if first_arg.starts_with(SYRD_ADMIN_URI_PREFIX) {
+            match claim_syrd_admin_link(&first_arg) {
+                Ok(uri) => args[0] = uri,
+                Err(err) => {
+                    log::error!("Failed to claim SYRD admin launch token: {}", err);
+                    return None;
+                }
+            }
+        }
+    }
+
     // linux uni (url) go here.
     #[cfg(all(target_os = "linux", feature = "flutter"))]
     if args.len() > 0 && args[0].starts_with(&crate::get_uri_prefix()) {
@@ -684,6 +697,85 @@ pub fn core_main() -> Option<Vec<String>> {
     return Some(flutter_args);
     #[cfg(not(feature = "flutter"))]
     return Some(args);
+}
+
+#[cfg(feature = "flutter")]
+use hbb_common::anyhow;
+
+#[cfg(feature = "flutter")]
+const SYRD_ADMIN_URI_PREFIX: &str = "sevketyilmazrd-admin://";
+
+#[cfg(feature = "flutter")]
+fn claim_syrd_admin_link(link: &str) -> hbb_common::ResultType<String> {
+    let parsed = url::Url::parse(link)?;
+    if parsed.scheme() != "sevketyilmazrd-admin" || parsed.host_str() != Some("connect") {
+        return Err(anyhow::anyhow!("unsupported admin URI"));
+    }
+
+    let token = parsed
+        .query_pairs()
+        .find(|(key, _)| key.eq_ignore_ascii_case("sessionToken"))
+        .map(|(_, value)| value.into_owned())
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow::anyhow!("missing sessionToken"))?;
+
+    let backend_url = read_syrd_admin_backend_url()?;
+    let claim_url = format!(
+        "{}/api/session-launch-tokens/{}/claim",
+        backend_url.trim_end_matches('/'),
+        url_component(&token)
+    );
+    let body = "{}".to_owned();
+    let headers = r#"{"Content-Type":"application/json"}"#;
+    let response = crate::post_request_sync(claim_url, body, headers)?;
+    let json: serde_json::Value = serde_json::from_str(&response)?;
+    let rustdesk_id = json
+        .get("rustDeskId")
+        .and_then(|value| value.as_str())
+        .ok_or_else(|| anyhow::anyhow!("claim response missing rustDeskId"))?;
+    let password = json
+        .get("password")
+        .and_then(|value| value.as_str())
+        .ok_or_else(|| anyhow::anyhow!("claim response missing password"))?;
+
+    Ok(format!(
+        "{}connect/{}?password={}",
+        crate::get_uri_prefix(),
+        url_component(rustdesk_id),
+        url_component(password)
+    ))
+}
+
+#[cfg(feature = "flutter")]
+fn read_syrd_admin_backend_url() -> hbb_common::ResultType<String> {
+    if let Ok(value) = std::env::var("SYRD_ADMIN_BACKEND_URL") {
+        if !value.trim().is_empty() {
+            return Ok(value);
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        let program_data =
+            std::env::var("ProgramData").unwrap_or_else(|_| "C:\\ProgramData".to_owned());
+        let path = std::path::Path::new(&program_data)
+            .join("SevketYilmazRD")
+            .join("admin-client.json");
+        let content = std::fs::read_to_string(path)?;
+        let json: serde_json::Value = serde_json::from_str(&content)?;
+        if let Some(value) = json.get("backendUrl").and_then(|value| value.as_str()) {
+            if !value.trim().is_empty() {
+                return Ok(value.to_owned());
+            }
+        }
+    }
+
+    Err(anyhow::anyhow!("admin backend URL is not configured"))
+}
+
+#[cfg(feature = "flutter")]
+fn url_component(value: &str) -> String {
+    url::form_urlencoded::byte_serialize(value.as_bytes()).collect()
 }
 
 #[inline]

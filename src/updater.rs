@@ -30,6 +30,11 @@ pub fn update_controlling_session_count(count: usize) {
 
 #[allow(dead_code)]
 pub fn start_auto_update() {
+    if std::env::var("SYRD_ENABLE_SIGNED_UPDATES").unwrap_or_default() != "1" {
+        log::info!("Auto update is disabled by default in this fork.");
+        return;
+    }
+
     let _sender = TX_MSG.lock().unwrap();
 }
 
@@ -118,6 +123,11 @@ fn start_auto_update_check_(rx_msg: Receiver<UpdateMsg>) {
 }
 
 fn check_update(manually: bool) -> ResultType<()> {
+    if std::env::var("SYRD_ENABLE_SIGNED_UPDATES").unwrap_or_default() != "1" {
+        log::info!("Unsigned update flow disabled. Use the coordinated manual rollout path.");
+        return Ok(());
+    }
+
     #[cfg(target_os = "windows")]
     let update_msi = crate::platform::is_msi_installed()? && !crate::is_custom_client();
     if !(manually || config::Config::get_bool_option(config::keys::OPTION_ALLOW_AUTO_UPDATE)) {

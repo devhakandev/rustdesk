@@ -940,6 +940,11 @@ pub fn is_modifier(evt: &KeyEvent) -> bool {
 }
 
 pub fn check_software_update() {
+    if std::env::var("SYRD_ENABLE_SIGNED_UPDATES").unwrap_or_default() != "1" {
+        log::info!("Software update checks are disabled by default in this fork.");
+        return;
+    }
+
     if is_custom_client() {
         return;
     }
@@ -952,6 +957,11 @@ pub fn check_software_update() {
 // No need to check `danger_accept_invalid_cert` for now.
 #[tokio::main(flavor = "current_thread")]
 pub async fn do_check_software_update() -> hbb_common::ResultType<()> {
+    if std::env::var("SYRD_ENABLE_SIGNED_UPDATES").unwrap_or_default() != "1" {
+        *SOFTWARE_UPDATE_URL.lock().unwrap() = "".to_string();
+        return Ok(());
+    }
+
     let (request, url) =
         hbb_common::version_check_request(hbb_common::VER_TYPE_RUSTDESK_CLIENT.to_string());
     let proxy_conf = Config::get_socks();
