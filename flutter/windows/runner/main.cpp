@@ -16,6 +16,7 @@ typedef void (*FUNC_RUSTDESK_FREE_ARGS)( char**, int);
 typedef int (*FUNC_RUSTDESK_GET_APP_NAME)(wchar_t*, int);
 /// Note: `--server`, `--service` are already handled in [core_main.rs].
 const std::vector<std::string> parameters_white_list = {"--install", "--cm"};
+const std::string syrd_admin_uri_prefix = "sevketyilmazrd-admin://";
 
 const wchar_t* getWindowClassName();
 
@@ -85,6 +86,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                     command_line_arguments.end(),
                     whitelist_param) != command_line_arguments.end();
     }
+    allow_multiple_instances =
+        allow_multiple_instances ||
+        (!command_line_arguments.empty() &&
+         command_line_arguments.front().compare(0, syrd_admin_uri_prefix.size(),
+                                                syrd_admin_uri_prefix) == 0);
     if (!allow_multiple_instances) {
       if (!command_line_arguments.empty()) {
         // Dispatch command line arguments

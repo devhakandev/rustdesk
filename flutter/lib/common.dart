@@ -77,9 +77,10 @@ const kSyrdAdminMinimumHomeSize = Size(880, 560);
 
 bool get isSyrdAdminClient => kSyrdClientProfile.toLowerCase() == 'admin';
 bool get isSyrdHostClient => !isSyrdAdminClient;
+bool isSyrdAdminUriLink(String value) =>
+    value.toLowerCase().startsWith(kSyrdAdminUriPrefix);
 bool isSyrdSupportedUriLink(String value) =>
-    value.startsWith(bind.mainUriPrefixSync()) ||
-    (isSyrdAdminClient && value.startsWith(kSyrdAdminUriPrefix));
+    value.startsWith(bind.mainUriPrefixSync());
 
 // Only used on Linux.
 // `windowManager.setResizable(false)` will reset the window size to the default size on Linux.
@@ -2249,6 +2250,12 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
   List<String>? args;
   if (cmdArgs != null && cmdArgs.isNotEmpty) {
     args = cmdArgs;
+    if (isSyrdAdminUriLink(args[0])) {
+      args = args.skip(1).toList();
+      if (args.isEmpty) {
+        return false;
+      }
+    }
     // rustdesk <uri link>
     if (isSyrdSupportedUriLink(args[0])) {
       final uri = Uri.tryParse(args[0]);
@@ -2257,8 +2264,14 @@ bool handleUriLink({List<String>? cmdArgs, Uri? uri, String? uriString}) {
       }
     }
   } else if (uri != null) {
+    if (isSyrdAdminUriLink(uri.toString())) {
+      return false;
+    }
     args = urlLinkToCmdArgs(uri);
   } else if (uriString != null) {
+    if (isSyrdAdminUriLink(uriString)) {
+      return false;
+    }
     final uri = Uri.tryParse(uriString);
     if (uri != null) {
       args = urlLinkToCmdArgs(uri);

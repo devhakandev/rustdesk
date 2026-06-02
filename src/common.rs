@@ -1158,7 +1158,7 @@ async fn post_request_(
     header: &str,
     tls_type: Option<TlsType>,
     danger_accept_invalid_cert: Option<bool>,
-    original_danger_accept_invalid_cert: Option<bool>,
+    _original_danger_accept_invalid_cert: Option<bool>,
 ) -> ResultType<reqwest::Response> {
     let mut req = create_http_client_async(
         tls_type.unwrap_or(TlsType::Rustls),
@@ -1199,34 +1199,20 @@ async fn post_request_(
             }
             Err(e) => {
                 if (tls_type.is_none() || danger_accept_invalid_cert.is_none()) && e.is_request() {
-                    if danger_accept_invalid_cert.is_none() {
-                        log::warn!(
-                            "HTTP request failed: {:?}, try again, danger accept invalid cert",
-                            e
-                        );
-                        post_request_(
-                            url,
-                            tls_url,
-                            body,
-                            header,
-                            tls_type,
-                            Some(true),
-                            original_danger_accept_invalid_cert,
-                        )
-                        .await
-                    } else {
-                        log::warn!("HTTP request failed: {:?}, try again with native-tls", e);
-                        post_request_(
-                            url,
-                            tls_url,
-                            body,
-                            header,
-                            Some(TlsType::NativeTls),
-                            original_danger_accept_invalid_cert,
-                            original_danger_accept_invalid_cert,
-                        )
-                        .await
-                    }
+                    log::warn!(
+                        "HTTP request failed: {:?}, try again with native-tls and strict certificate validation",
+                        e
+                    );
+                    post_request_(
+                        url,
+                        tls_url,
+                        body,
+                        header,
+                        Some(TlsType::NativeTls),
+                        Some(false),
+                        Some(false),
+                    )
+                    .await
                 } else {
                     Err(anyhow!("{:?}", e))
                 }
@@ -1249,7 +1235,7 @@ async fn get_http_response_async(
     header: &str,
     tls_type: Option<TlsType>,
     danger_accept_invalid_cert: Option<bool>,
-    original_danger_accept_invalid_cert: Option<bool>,
+    _original_danger_accept_invalid_cert: Option<bool>,
 ) -> ResultType<reqwest::Response> {
     let http_client = create_http_client_async(
         tls_type.unwrap_or(TlsType::Rustls),
@@ -1311,36 +1297,21 @@ async fn get_http_response_async(
             }
             Err(e) => {
                 if (tls_type.is_none() || danger_accept_invalid_cert.is_none()) && e.is_request() {
-                    if danger_accept_invalid_cert.is_none() {
-                        log::warn!(
-                            "HTTP request failed: {:?}, try again, danger accept invalid cert",
-                            e
-                        );
-                        get_http_response_async(
-                            url,
-                            tls_url,
-                            method,
-                            body,
-                            header,
-                            tls_type,
-                            Some(true),
-                            original_danger_accept_invalid_cert,
-                        )
-                        .await
-                    } else {
-                        log::warn!("HTTP request failed: {:?}, try again with native-tls", e);
-                        get_http_response_async(
-                            url,
-                            tls_url,
-                            method,
-                            body,
-                            header,
-                            Some(TlsType::NativeTls),
-                            original_danger_accept_invalid_cert,
-                            original_danger_accept_invalid_cert,
-                        )
-                        .await
-                    }
+                    log::warn!(
+                        "HTTP request failed: {:?}, try again with native-tls and strict certificate validation",
+                        e
+                    );
+                    get_http_response_async(
+                        url,
+                        tls_url,
+                        method,
+                        body,
+                        header,
+                        Some(TlsType::NativeTls),
+                        Some(false),
+                        Some(false),
+                    )
+                    .await
                 } else {
                     Err(anyhow!("{:?}", e))
                 }

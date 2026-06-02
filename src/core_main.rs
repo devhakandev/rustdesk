@@ -158,7 +158,10 @@ pub fn core_main() -> Option<Vec<String>> {
     if let Some(first_arg) = args.get(0).cloned() {
         if first_arg.starts_with(SYRD_ADMIN_URI_PREFIX) {
             match claim_syrd_admin_link(&first_arg) {
-                Ok(uri) => args[0] = uri,
+                Ok(uri) => {
+                    args[0] = uri.clone();
+                    flutter_args = vec![uri];
+                }
                 Err(err) => {
                     log::error!("Failed to claim SYRD admin launch token: {}", err);
                     return None;
@@ -762,6 +765,7 @@ fn read_syrd_admin_backend_url() -> hbb_common::ResultType<String> {
             .join("SevketYilmazRD")
             .join("admin-client.json");
         let content = std::fs::read_to_string(path)?;
+        let content = content.trim_start_matches('\u{feff}');
         let json: serde_json::Value = serde_json::from_str(&content)?;
         if let Some(value) = json.get("backendUrl").and_then(|value| value.as_str()) {
             if !value.trim().is_empty() {
