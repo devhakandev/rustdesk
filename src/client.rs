@@ -254,8 +254,12 @@ impl Client {
         if hbb_common::is_ip_str(peer) {
             return Ok((
                 (
-                    connect_tcp_local(check_port(peer, RELAY_PORT + 1), None, CONNECT_TIMEOUT)
-                        .await?,
+                    connect_tcp_local(
+                        check_port(peer, crate::get_default_direct_port()),
+                        None,
+                        CONNECT_TIMEOUT,
+                    )
+                    .await?,
                     true,
                     None,
                     None,

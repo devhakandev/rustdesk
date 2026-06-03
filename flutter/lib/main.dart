@@ -137,6 +137,7 @@ Future<void> initEnv(String appType) async {
   }
   await bind.mainSetOption(key: 'api-server', value: '');
   await bind.mainSetOption(key: 'enable-lan-discovery', value: 'N');
+  await bind.mainSetOption(key: 'direct-access-port', value: '21128');
   if (isSyrdHostClient) {
     await bind.mainSetOption(
         key: 'verification-method', value: 'use-permanent-password');

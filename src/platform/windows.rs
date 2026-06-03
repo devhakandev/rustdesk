@@ -1892,9 +1892,10 @@ fn get_public_base_dir() -> PathBuf {
 
 #[inline]
 pub fn get_custom_client_staging_dir() -> PathBuf {
+    let app_name = crate::get_app_name();
     get_public_base_dir()
-        .join("RustDesk")
-        .join("RustDeskCustomClientStaging")
+        .join(&app_name)
+        .join(format!("{app_name}CustomClientStaging"))
 }
 
 /// Removes the custom client staging directory.
@@ -1903,7 +1904,7 @@ pub fn get_custom_client_staging_dir() -> PathBuf {
 ///
 /// Rationale
 /// - The staging directory only contains a small `custom.txt`, leaving it is harmless.
-/// - Deleting directories under a public location (e.g., C:\\ProgramData\\RustDesk) is
+/// - Deleting directories under a public location (e.g., C:\\ProgramData\\<AppName>) is
 ///   susceptible to TOCTOU attacks if an unprivileged user can replace the path with a
 ///   symlink/junction between checks and deletion.
 ///
@@ -3513,13 +3514,18 @@ pub fn try_remove_temp_update_files() {
         return;
     };
 
+    let update_prefix = if crate::is_custom_client() {
+        format!("{}-rustdesk-", crate::get_app_name())
+    } else {
+        "rustdesk-".to_owned()
+    };
     let one_hour = std::time::Duration::from_secs(60 * 60);
     for entry in entries {
         if let Ok(entry) = entry {
             let path = entry.path();
             if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
-                // Match files like rustdesk-*.msi or rustdesk-*.exe
-                if file_name.starts_with("rustdesk-")
+                // Match only updater files belonging to this application.
+                if file_name.starts_with(&update_prefix)
                     && (file_name.ends_with(".msi") || file_name.ends_with(".exe"))
                 {
                     // Skip files modified within the last hour to avoid deleting files being downloaded

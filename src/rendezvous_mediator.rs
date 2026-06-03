@@ -81,7 +81,7 @@ impl RendezvousMediator {
         #[cfg(target_os = "android")]
         let start_lan_listening = true;
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let start_lan_listening = crate::platform::is_installed();
+        let start_lan_listening = crate::platform::is_installed() && !crate::is_custom_client();
         if start_lan_listening {
             std::thread::spawn(move || {
                 allow_err!(super::lan::start_listening());
@@ -756,7 +756,7 @@ fn get_direct_port() -> i32 {
         .parse::<i32>()
         .unwrap_or(0);
     if port <= 0 {
-        port = RENDEZVOUS_PORT + 2;
+        port = crate::get_default_direct_port();
     }
     port
 }
@@ -787,7 +787,13 @@ async fn direct_server(server: ServerPtr) {
                         err
                     );
                     loop {
-                        if port != get_direct_port() {
+                        if port != get_direct_port()
+                            || !option2bool(
+                                OPTION_DIRECT_SERVER,
+                                &Config::get_option(OPTION_DIRECT_SERVER),
+                            )
+                            || option2bool("stop-service", &Config::get_option("stop-service"))
+                        {
                             break;
                         }
                         sleep(1.).await;

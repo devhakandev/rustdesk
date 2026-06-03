@@ -1014,6 +1014,17 @@ pub fn get_app_name() -> String {
     hbb_common::config::APP_NAME.read().unwrap().clone()
 }
 
+pub const CUSTOM_DIRECT_PORT: i32 = 21128;
+
+#[inline]
+pub fn get_default_direct_port() -> i32 {
+    if is_custom_client() {
+        CUSTOM_DIRECT_PORT
+    } else {
+        config::RELAY_PORT + 1
+    }
+}
+
 #[inline]
 pub fn is_rustdesk() -> bool {
     hbb_common::config::APP_NAME.read().unwrap().eq("RustDesk")

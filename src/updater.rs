@@ -296,5 +296,11 @@ fn update_new_version(update_msi: bool, version: &str, file_path: &PathBuf) {
 
 pub fn get_download_file_from_url(url: &str) -> Option<PathBuf> {
     let filename = url.split('/').last()?;
+    #[cfg(target_os = "windows")]
+    let filename = if crate::is_custom_client() {
+        format!("{}-{}", crate::get_app_name(), filename)
+    } else {
+        filename.to_owned()
+    };
     Some(std::env::temp_dir().join(filename))
 }
