@@ -5,7 +5,9 @@
 #include <windows.h>
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "win32_desktop.h"
 #include "flutter_window.h"
@@ -19,6 +21,97 @@ const std::vector<std::string> parameters_white_list = {"--install", "--cm"};
 const std::string syrd_admin_uri_prefix = "sevketyilmazrd-admin://";
 
 const wchar_t* getWindowClassName();
+
+namespace {
+
+struct SyrdSessionWindowSearch {
+  DWORD process_id;
+  std::wstring peer_id;
+  HWND result = nullptr;
+};
+
+BOOL CALLBACK FindSyrdSessionWindow(HWND window, LPARAM parameter) {
+  auto* search = reinterpret_cast<SyrdSessionWindowSearch*>(parameter);
+  DWORD process_id = 0;
+  GetWindowThreadProcessId(window, &process_id);
+  if (process_id != search->process_id || !IsWindowVisible(window)) {
+    return TRUE;
+  }
+
+  const int title_length = GetWindowTextLengthW(window);
+  if (title_length <= 0) {
+    return TRUE;
+  }
+
+  std::wstring title(title_length + 1, L'\0');
+  GetWindowTextW(window, title.data(), static_cast<int>(title.size()));
+  title.resize(title_length);
+  if (title.find(search->peer_id) == std::wstring::npos) {
+    return TRUE;
+  }
+
+  search->result = window;
+  return FALSE;
+}
+
+void ForceSyrdSessionWindowForeground(HWND window) {
+  ShowWindowAsync(window, SW_RESTORE);
+
+  const DWORD current_thread = GetCurrentThreadId();
+  const DWORD target_thread = GetWindowThreadProcessId(window, nullptr);
+  const HWND foreground_window = GetForegroundWindow();
+  const DWORD foreground_thread = foreground_window
+                                      ? GetWindowThreadProcessId(
+                                            foreground_window, nullptr)
+                                      : 0;
+
+  const bool attached_foreground =
+      foreground_thread && foreground_thread != current_thread;
+  const bool attached_target =
+      target_thread && target_thread != current_thread &&
+      target_thread != foreground_thread;
+
+  if (attached_foreground) {
+    AttachThreadInput(current_thread, foreground_thread, TRUE);
+  }
+  if (attached_target) {
+    AttachThreadInput(current_thread, target_thread, TRUE);
+  }
+
+  SetWindowPos(window, HWND_TOPMOST, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+  BringWindowToTop(window);
+  SetForegroundWindow(window);
+  SetActiveWindow(window);
+  SetFocus(window);
+  SetWindowPos(window, HWND_NOTOPMOST, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+  if (attached_target) {
+    AttachThreadInput(current_thread, target_thread, FALSE);
+  }
+  if (attached_foreground) {
+    AttachThreadInput(current_thread, foreground_thread, FALSE);
+  }
+}
+
+void FocusSyrdSessionWindowWhenReady(const std::wstring& peer_id) {
+  std::thread([peer_id]() {
+    SyrdSessionWindowSearch search{GetCurrentProcessId(), peer_id};
+    for (int attempt = 0; attempt < 300; ++attempt) {
+      search.result = nullptr;
+      EnumWindows(FindSyrdSessionWindow,
+                  reinterpret_cast<LPARAM>(&search));
+      if (search.result) {
+        ForceSyrdSessionWindowForeground(search.result);
+        return;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }).detach();
+}
+
+}  // namespace
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command)
@@ -45,6 +138,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   }
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
+  const bool is_syrd_admin_uri_launch =
+      !command_line_arguments.empty() &&
+      command_line_arguments.front().compare(0, syrd_admin_uri_prefix.size(),
+                                             syrd_admin_uri_prefix) == 0;
+  std::wstring syrd_peer_id;
+  if (is_syrd_admin_uri_launch) {
+    const std::string& uri = command_line_arguments.front();
+    const std::string peer_marker = syrd_admin_uri_prefix + "connect/";
+    if (uri.compare(0, peer_marker.size(), peer_marker) == 0) {
+      const size_t peer_start = peer_marker.size();
+      const size_t peer_end = uri.find('?', peer_start);
+      const std::string peer_id =
+          uri.substr(peer_start, peer_end == std::string::npos
+                                     ? std::string::npos
+                                     : peer_end - peer_start);
+      syrd_peer_id.assign(peer_id.begin(), peer_id.end());
+    }
+  }
   // Remove possible trailing whitespace from command line arguments
   for (auto& argument : command_line_arguments) {
     argument.erase(argument.find_last_not_of(" \n\r\t"));
@@ -161,6 +272,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
       return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
+  if (is_syrd_admin_uri_launch && !syrd_peer_id.empty()) {
+    FocusSyrdSessionWindowWhenReady(syrd_peer_id);
+  }
 
   ::MSG msg;
   while (::GetMessage(&msg, nullptr, 0, 0))

@@ -761,19 +761,38 @@ fn read_syrd_admin_backend_url() -> hbb_common::ResultType<String> {
     {
         let program_data =
             std::env::var("ProgramData").unwrap_or_else(|_| "C:\\ProgramData".to_owned());
-        let path = std::path::Path::new(&program_data)
-            .join("SevketYilmazRD")
-            .join("admin-client.json");
-        let content = std::fs::read_to_string(path)?;
-        let content = content.trim_start_matches('\u{feff}');
-        let json: serde_json::Value = serde_json::from_str(&content)?;
-        if let Some(value) = json.get("backendUrl").and_then(|value| value.as_str()) {
-            if !value.trim().is_empty() {
-                return Ok(value.to_owned());
+        let config_paths = [
+            std::path::Path::new(&program_data)
+                .join("SevketYilmazRD-Admin")
+                .join("admin-client.json"),
+            std::path::Path::new(&program_data)
+                .join("SevketYilmazRD")
+                .join("admin-client.json"),
+        ];
+
+        for path in &config_paths {
+            if !path.is_file() {
+                continue;
+            }
+
+            let content = std::fs::read_to_string(path)?;
+            let content = content.trim_start_matches('\u{feff}');
+            let json: serde_json::Value = serde_json::from_str(&content)?;
+            if let Some(value) = json.get("backendUrl").and_then(|value| value.as_str()) {
+                if !value.trim().is_empty() {
+                    return Ok(value.to_owned());
+                }
             }
         }
+
+        return Err(anyhow::anyhow!(
+            "admin backend URL is not configured; checked {} and {}",
+            config_paths[0].display(),
+            config_paths[1].display()
+        ));
     }
 
+    #[cfg(not(windows))]
     Err(anyhow::anyhow!("admin backend URL is not configured"))
 }
 

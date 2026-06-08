@@ -316,8 +316,11 @@ void runMultiWindow(
       // no such appType
       exit(0);
   }
-  // show window from hidden status
-  WindowController.fromWindowId(kWindowId!).show();
+  // Protocol launches create the session window after the browser prompt has
+  // returned focus to the browser. Show and focus the actual session window.
+  final windowController = WindowController.fromWindowId(kWindowId!);
+  await windowController.show();
+  await windowController.focus();
 }
 
 void runConnectionManagerScreen() async {
