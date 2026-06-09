@@ -473,6 +473,7 @@ def build_flutter_windows(version, features, skip_portable_pack,
     if skip_portable_pack:
         return
     os.chdir('libs/portable')
+    os.environ['SYRD_PORTABLE_PROFILE'] = client_profile
     system2('pip3 install -r requirements.txt')
     system2(
         f'python3 ./generate.py -f ../../{flutter_build_dir_2} -o . -e ../../{flutter_build_dir_2}/SevketYilmazRD.exe')

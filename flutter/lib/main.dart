@@ -136,6 +136,8 @@ Future<void> initEnv(String appType) async {
     await bind.mainSetOption(key: 'key', value: kSyrdServerKey);
   }
   await bind.mainSetOption(key: 'api-server', value: '');
+  await bind.mainSetOption(key: 'relay-server', value: '');
+  await bind.mainSetOption(key: kOptionAllowWebSocket, value: 'N');
   await bind.mainSetOption(key: 'enable-lan-discovery', value: 'N');
   await bind.mainSetOption(key: 'direct-access-port', value: '21128');
   if (isSyrdHostClient) {

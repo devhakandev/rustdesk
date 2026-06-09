@@ -1,4 +1,6 @@
 fn main() {
+    println!("cargo:rerun-if-env-changed=SYRD_PORTABLE_PROFILE");
+
     #[cfg(windows)]
     {
         use std::io::Write;

@@ -469,6 +469,21 @@ pub fn core_main() -> Option<Vec<String>> {
         } else if args[0] == "--get-id" {
             println!("{}", crate::ipc::get_id());
             return None;
+        } else if args[0] == "--migrate-branded-id" {
+            if crate::platform::is_installed() && is_root() {
+                let old_id = crate::ipc::get_id();
+                if let Some(new_id) = config::Config::get_branded_id_from_legacy_id(&old_id) {
+                    match crate::ipc::set_config("id", new_id) {
+                        Ok(_) => println!("Done!"),
+                        Err(err) => println!("{err}"),
+                    }
+                } else {
+                    println!("Current ID is not a legacy desktop ID.");
+                }
+            } else {
+                println!("Installation and administrative privileges required!");
+            }
+            return None;
         } else if args[0] == "--set-id" {
             if config::is_disable_settings() {
                 println!("Settings are disabled!");
