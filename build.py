@@ -464,6 +464,9 @@ def flutter_dart_define_args(client_profile, client_server_host, client_server_k
 
 def build_flutter_windows(version, features, skip_portable_pack,
                           client_profile, client_server_host, client_server_key):
+    # Rust reads option_env!("SYRD_CLIENT_PROFILE") at cargo compile time to bake the
+    # per-profile APP_NAME (config namespace + uri prefix); build.rs reruns on change.
+    os.environ['SYRD_CLIENT_PROFILE'] = client_profile
     if not skip_cargo:
         system2(f'cargo build --locked --features {features} --lib --release')
         if not os.path.exists("target/release/librustdesk.dll"):
