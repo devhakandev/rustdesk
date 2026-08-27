@@ -382,6 +382,12 @@ def build_flutter_deb(version, features,
     system2('mkdir -p tmpdeb/DEBIAN')
     generate_control_file(version)
     system2('cp -a ../res/DEBIAN/* tmpdeb/DEBIAN/')
+    # `cp -a` preserves the source mode exactly. On a Windows checkout mounted into
+    # a Linux container every tracked file reads as 0777, and dpkg-deb refuses
+    # maintainer scripts outside 0555-0775 ("bad permissions 777"). Normalise them
+    # so the package builds identically from a Windows or a native checkout.
+    system2('find tmpdeb/DEBIAN -type f ! -name control -exec chmod 0755 {} +')
+    system2('chmod 0644 tmpdeb/DEBIAN/control')
     md5_file_folder("tmpdeb/")
     system2('dpkg-deb -b tmpdeb rustdesk.deb;')
 
@@ -424,6 +430,12 @@ def build_deb_from_folder(version, binary_folder):
     system2('mkdir -p tmpdeb/DEBIAN')
     generate_control_file(version)
     system2('cp -a ../res/DEBIAN/* tmpdeb/DEBIAN/')
+    # `cp -a` preserves the source mode exactly. On a Windows checkout mounted into
+    # a Linux container every tracked file reads as 0777, and dpkg-deb refuses
+    # maintainer scripts outside 0555-0775 ("bad permissions 777"). Normalise them
+    # so the package builds identically from a Windows or a native checkout.
+    system2('find tmpdeb/DEBIAN -type f ! -name control -exec chmod 0755 {} +')
+    system2('chmod 0644 tmpdeb/DEBIAN/control')
     md5_file_folder("tmpdeb/")
     system2('dpkg-deb -b tmpdeb rustdesk.deb;')
 
