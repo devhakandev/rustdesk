@@ -141,22 +141,25 @@ def make_parser():
             action='store_true',
             help='Skip packing, only flutter version + Windows supported'
         )
-        parser.add_argument(
-            '--client-profile',
-            choices=['host', 'admin'],
-            default=os.environ.get('SYRD_CLIENT_PROFILE', 'host').lower(),
-            help='SevketYilmazRD client profile for Flutter build: host or admin.'
-        )
-        parser.add_argument(
-            '--client-server-host',
-            default=os.environ.get('SYRD_SERVER_HOST', ''),
-            help='Optional private rendezvous server host embedded via dart-define.'
-        )
-        parser.add_argument(
-            '--client-server-key',
-            default=os.environ.get('SYRD_SERVER_KEY', ''),
-            help='Optional private rendezvous server key embedded via dart-define.'
-        )
+    # SevketYilmazRD branding applies to Windows and Linux alike. These used to be
+    # registered only under `if windows:`, which made the Linux .deb build reject
+    # them outright -- the docker/linux-build chain could never run end to end.
+    parser.add_argument(
+        '--client-profile',
+        choices=['host', 'admin'],
+        default=os.environ.get('SYRD_CLIENT_PROFILE', 'host').lower(),
+        help='SevketYilmazRD client profile for Flutter build: host or admin.'
+    )
+    parser.add_argument(
+        '--client-server-host',
+        default=os.environ.get('SYRD_SERVER_HOST', ''),
+        help='Optional private rendezvous server host embedded via dart-define.'
+    )
+    parser.add_argument(
+        '--client-server-key',
+        default=os.environ.get('SYRD_SERVER_KEY', ''),
+        help='Optional private rendezvous server key embedded via dart-define.'
+    )
     parser.add_argument(
         "--package",
         type=str
@@ -332,12 +335,19 @@ def ffi_bindgen_function_refactor():
         'sed -i "s/ffi.NativeFunction<ffi.Bool Function(DartPort/ffi.NativeFunction<ffi.Uint8 Function(DartPort/g" flutter/lib/generated_bridge.dart')
 
 
-def build_flutter_deb(version, features):
+def build_flutter_deb(version, features,
+                      client_profile='host', client_server_host='', client_server_key=''):
+    # Mirrors build_flutter_windows: Rust reads option_env!("SYRD_CLIENT_PROFILE") at
+    # cargo compile time to bake the per-profile APP_NAME, and build.rs reruns when it
+    # changes, so this must be set before the cargo build below.
+    os.environ['SYRD_CLIENT_PROFILE'] = client_profile
     if not skip_cargo:
         system2(f'cargo build --locked --features {features} --lib --release')
         ffi_bindgen_function_refactor()
     os.chdir('flutter')
-    system2('flutter build linux --release')
+    flutter_args = flutter_dart_define_args(
+        client_profile, client_server_host, client_server_key)
+    system2(f'flutter build linux --release {flutter_args}')
     system2('mkdir -p tmpdeb/usr/bin/')
     system2('mkdir -p tmpdeb/usr/share/rustdesk')
     system2('mkdir -p tmpdeb/etc/rustdesk/')
@@ -377,8 +387,13 @@ def build_flutter_deb(version, features):
 
     system2('/bin/rm -rf tmpdeb/')
     system2('/bin/rm -rf ../res/DEBIAN/control')
-    os.rename('rustdesk.deb', '../rustdesk-%s.deb' % version)
+    # Profile-named output so host and admin artefacts in one tree cannot be
+    # confused (the Windows path names its artefacts the same way).
+    profile_name = 'Admin' if client_profile == 'admin' else 'Host'
+    deb_name = 'SevketYilmazRD-%s-%s.deb' % (profile_name, version)
+    os.rename('rustdesk.deb', '../' + deb_name)
     os.chdir("..")
+    print(f'output location: {os.path.abspath(deb_name)}')
 
 
 def build_deb_from_folder(version, binary_folder):
@@ -509,15 +524,17 @@ def main():
     parser = make_parser()
     args = parser.parse_args()
 
-    if windows and args.flutter:
+    # Rust bakes RS_PUB_KEY / SYRD_RENDEZVOUS_SERVER from these via option_env!, so a
+    # branded build without them silently produces a client that cannot reach the
+    # private server. Enforce on every platform that builds one (macOS is not built
+    # here). Previously Windows-only, which let the Linux build slip through.
+    if args.flutter and not osx:
         if not args.client_server_host:
-            raise Exception("SYRD_SERVER_HOST or --client-server-host is required for branded Windows Flutter builds")
+            raise Exception("SYRD_SERVER_HOST or --client-server-host is required for branded Flutter builds")
         if not args.client_server_key:
-            raise Exception("SYRD_SERVER_KEY or --client-server-key is required for branded Windows Flutter builds")
-        if args.client_server_host:
-            os.environ["SYRD_SERVER_HOST"] = args.client_server_host
-        if args.client_server_key:
-            os.environ["SYRD_SERVER_KEY"] = args.client_server_key
+            raise Exception("SYRD_SERVER_KEY or --client-server-key is required for branded Flutter builds")
+        os.environ["SYRD_SERVER_HOST"] = args.client_server_host
+        os.environ["SYRD_SERVER_KEY"] = args.client_server_key
 
     if os.path.exists(exe_path):
         os.unlink(exe_path)
@@ -614,7 +631,10 @@ def main():
             else:
                 # system2(
                 #     'mv target/release/bundle/deb/rustdesk*.deb ./flutter/rustdesk.deb')
-                build_flutter_deb(version, features)
+                build_flutter_deb(version, features,
+                                  args.client_profile,
+                                  args.client_server_host,
+                                  args.client_server_key)
         else:
             system2('cargo --locked bundle --release --features ' + features)
             if osx:
